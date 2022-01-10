@@ -4,11 +4,12 @@
 2. [Analysis](#analysis)
 3. [Methodology](#methodology)
 4. [Results](#results)
-5. [Algorithm](#algorithm)
-6. [Instructions](#instructions)
-7. [Files](#files)
-8. [Conclusion](#conclusion)
-9. [Acknowledgment](#acknowledgment)
+5. [Justification](#justification)
+6. [Algorithm](#algorithm)
+7. [Instructions](#instructions)
+8. [Files](#files)
+9. [Conclusion](#conclusion)
+10. [Acknowledgment](#acknowledgment)
 
 ## Project Definition <a name="project-definition"></a>
 
@@ -100,6 +101,8 @@ The same way we did for VGG19:
 | Refined Transfer Learning (VGG19) | **71.29%**  |
 | Refined Transfer Learning (VGG16) | 47.97%      |
 | From Scratch                      | 13.28%      |
+
+## Justification <a name="justification"></a>
 
 Using the accuracy metric as a comparison, it can be seen that the transfer learning models performed better tests, as these models were studied and designed for this type of classification (more elaborate layers compared to the first model).
 
