@@ -27,7 +27,7 @@ Here, we have a computer vision problem that uses a Convolutional Neural Network
 
 ### Metrics
 
-The dog dataset does not have highly unbalanced classes, so to evaluate the model, I will use the accuracy ($\dfrac{\text{correct predictions}}{\text{total images}}$) as metric.
+The dog dataset does not have highly unbalanced classes, so to evaluate the model, I will use the accuracy (correct predictions/total images) as metric.
 
 ## Analysis <a name="analysis"></a>
 
