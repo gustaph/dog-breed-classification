@@ -7,9 +7,8 @@
 5. [Justification](#justification)
 6. [Algorithm](#algorithm)
 7. [Instructions](#instructions)
-8. [Files](#files)
-9. [Conclusion](#conclusion)
-10. [Acknowledgment](#acknowledgment)
+8. [Conclusion](#conclusion)
+9. [Acknowledgment](#acknowledgment)
 
 ## Project Definition <a name="project-definition"></a>
 
@@ -28,13 +27,59 @@ Here, we have a computer vision problem that uses a Convolutional Neural Network
 
 ### Metrics
 
-To evaluate the model, we will use a comparison using precision (percentage of correct answers for the model in unseen data).
+The dog dataset does not have highly unbalanced classes, so to evaluate the model, I will use the accuracy ($\dfrac{\text{correct predictions}}{\text{total images}}$) as metric.
 
 ## Analysis <a name="analysis"></a>
 
 ### Data Exploration
 
-In the dataset there are **133** different categories of dogs, divided among the **8351 images** (with different shapes) present in the dataset. Data were separated into *6680 images for training*, *835 for validation* and *836 for testing*. For the human dataset, there are **13233 images**. See below for examples of the two datasets:
+In the dataset there are **133** different categories of dogs, divided among the **8351 images** (with different shapes) present in the dataset. Data were separated into *6680 images for training*, *835 for validation* and *836 for testing*. For the human dataset, there are **13233 images**.
+
+#### Dogs Dataset
+
+This dataset contains **133** different categories of dogs, divided among the **8351 images** (with different shapes). These images were separated into training, testing and validation with percentages of ~80%, ~10% and ~10% respectively. Below some information about the data of each split.
+
+|       | Train | Test  | Validation |
+|-------|-------|-------|------------|
+| count | 133.0 | 133.0 | 133.0      |
+| mean  | 50.22 | 6.28  | 6.27       |
+| std   | 11.86 | 1.71  | 1.35       |
+| min   | 26.0  | 3.0   | 4.0        |
+| 25%   | 42.0  | 5.0   | 6.0        |
+| 50%   | 50.0  | 6.0   | 6.0        |
+| 75%   | 61.0  | 8.0   | 7.0        |
+| max   | 77.0  | 10.0  | 9.0        |
+
+We can also analyze the distribution of this data by the images below. In black, the ideal normal distribution. In blue the current distribution. They are very close curves.
+
+<div align="center">
+  <img src="https://user-images.githubusercontent.com/54601061/148851869-41d3d8c1-2872-48d2-9709-0fdc08dcd17b.png"/>
+</div>
+
+#### Humans Dataset
+
+The analysis of the human dataset follows the same principle as the previous one, except that, in this case, there is no splitting into training, testing and validation.
+
+|       | Value  |
+|-------|--------|
+| count | 5749.0 |
+| mean  | 2.3    |
+| std   | 9.0    |
+| min   | 1.0    |
+| 25%   | 1.0    |
+| 50%   | 1.0    |
+| 75%   | 2.0    |
+| max   | 530.0  |
+
+If we look at the table above, we can already see that the dataset is clearly unbalanced when comparing the mean, minimum and percentiles ​​with the maximum value.
+
+To clarify this, we see in the graph "Top 20 Scores" that there are more than 500 images of a class, while the second most has approximately half that value. This distortion can cause some bias in the results.
+
+<div align="center">
+  <img src="https://user-images.githubusercontent.com/54601061/148852201-10533a96-2ad8-4575-80d5-289628e2ba4f.png"/>
+</div>
+
+See below for examples of the two datasets:
 
 ![image](https://user-images.githubusercontent.com/54601061/148783146-331f9eed-252d-43bc-b069-e68fd5aa99fd.png)
 
@@ -60,6 +105,27 @@ With that the data is ready to be used in the model.
 
 For the implementation, two CNNs were built: one from scratch and two others using transfer learning (VGG16/VGG19). Let's take a look at the architecture of the first model.
 
+```python
+model = Sequential(
+    [
+        InputLayer(input_shape=(224, 224, 3)),
+        Conv2D(16, 3, padding='same', activation='relu'),
+        MaxPooling2D(2),
+        Conv2D(32, 3, padding='same', activation='relu'),
+        MaxPooling2D(32),
+        Conv2D(64, 3, padding='same', activation='relu'),
+        MaxPooling2D(2),
+        GlobalAveragePooling2D(),
+        Dense(512, activation='relu'),
+        Dense(133, activation='softmax'),
+    ]
+)
+```
+
+The model flow starts with and input layer with the image dimensions, followed by 3 pairs of Convolutions and MaxPooling, ending with a GlobalAveragePooling layer to produce an output with the spatial average of the feature maps from the last pair Convolution-MaxPooling layer as the confidence of categories, and then it is placed on the fully connected layer. All activation functions are ReLU, except for the last one (softmax), as it is a multi-class problem (for this reason 133 nodes: one for each breed).
+
+The summarized model should look like this...
+
 | Layer                  | Output Shape         |
 |------------------------|----------------------|
 | InputLayer             | (None, 224, 224, 3)  |
@@ -73,11 +139,21 @@ For the implementation, two CNNs were built: one from scratch and two others usi
 | Dense                  | (None, 512)          |
 | Dense                  | (None, 133)          |
 
-All models were compiled with the RMSprop optimizer, with `categorical_crossentropy` as the loss funtion, as we are dealing with a multi-class problem.
+...and then trained in 10 epochs.
+
+All models here were fitted to training data with `batch_size = 20` and compiled with the `RMSprop` optimizer, with `categorical_crossentropy` as the loss funtion, as we are dealing with a multi-class problem.
 
 ### Refinement
 
 We implemented the VGG16 architecture by adding more layers. New layers:
+
+```python
+VGG16_model = Sequential()
+VGG16_model.add(GlobalAveragePooling2D(input_shape=train_VGG16.shape[1:]))
+VGG16_model.add(Dense(133, activation='softmax'))
+```
+
+The model uses the the pre-trained VGG-16 model as a fixed feature extractor, where the last convolutional output of VGG-16 is fed as input to our model. I only add a global average pooling layer and a fully connected layer with a softmax.
 
 | Layer                  | Output Shape         |
 |------------------------|----------------------|
@@ -85,6 +161,20 @@ We implemented the VGG16 architecture by adding more layers. New layers:
 | Dense                  | (None, 133)          |
 
 The same way we did for VGG19:
+
+```python
+vgg19_model = Sequential(
+    [
+        layers.GlobalAveragePooling2D(input_shape=train_VGG19.shape[1:]),
+        layers.Dense(256, activation='relu'),
+        layers.Dense(512, activation='relu'),
+        layers.Dropout(0.3),
+        layers.Dense(133, activation='softmax'),
+    ]
+)
+```
+
+The only different layer is Dropout (`layers.Dropout(0.3)`), which will randomly drop 30% of connections, which helps to avoid overfitting.
 
 | Layer                  | Output Shape         |
 |------------------------|----------------------|
@@ -150,10 +240,6 @@ For this step, first check if there is a dog or a person in the image. If there 
     ```
 
     If the window doesn't open, copy the address that will appear in the console and paste it into your browser
-
-## Files <a name="files"></a>
-
-
 
 ## Conclusion <a name="conclusion"></a>
 
